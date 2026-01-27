@@ -25,7 +25,7 @@ Each configuration probes different symmetry and selection-rule effects in the e
 ## ⚙️ Pump Pulse Configurations Implemented
 
 ### 1️⃣ Linear Pump Pulse
-- Single-frequency, linearly polarized driving field
+- Single-frequency $\omega$, linearly polarized driving field
 - Used as a reference configuration
 - Captures standard odd-harmonic generation mechanisms
 
