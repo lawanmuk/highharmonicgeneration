@@ -30,7 +30,7 @@ Each configuration probes different symmetry and selection-rule effects in the e
 - Captures standard odd-harmonic generation mechanisms
 
 ### 2️⃣ Colinear Pump Pulse
-- Multi-frequency $\omega$ - $2*\omega$ pulses polarized along the same axis
+- Multi-frequency $\omega$ - $2\omega$ pulses polarized along the same axis
 - Allows control over interference effects and harmonic enhancement
 - Useful for studying phase-dependent nonlinear response
 
