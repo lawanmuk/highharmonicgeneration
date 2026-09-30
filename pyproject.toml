@@ -20,7 +20,7 @@ hhg-figures = "hhg.figures:main"
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=8",
+    "pytest>=9.1.1",
     "ruff>=0.5",
 ]
 
