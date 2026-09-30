@@ -3,9 +3,11 @@ function current2HHG( filename,V, offset )
  if ~exist('offset','var')
      % third parameter does not exist, so default it to something
       offset = 0;
+      if ~exist('V','var')
+          V = 1;
+      end
  end
-filename = 'cp_I=1.5e12total_current'
-V = 1
+
 au2fs = 0.024189;
 
 tcurrent = importdata(filename);
@@ -44,8 +46,11 @@ HHG2x = HHGx.*En.^2;
 HHG2y = HHGy.*En.^2;
 HHG2z = HHGz.*En.^2;
 
-if(offset==0 || offset==3)
+if(offset==0)
   dlmwrite(['HHG_' filename '.out'], [En' HHG' HHG2' HHG2x' HHG2y' HHG2z' ], 'delimiter', '\t');
+end
+if(offset==3)
+  dlmwrite(['HHG_' filename '_In.out'], [En' HHG' HHG2' HHG2x' HHG2y' HHG2z' ], 'delimiter', '\t');
 end
 if(offset==6)
    dlmwrite(['HHG_' filename '_sp1.out'], [En' HHG' HHG2' HHG2x' HHG2y' HHG2z' ], 'delimiter', '\t');
