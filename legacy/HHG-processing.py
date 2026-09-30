@@ -3,7 +3,7 @@
 """
 Created on Tue Dec  7 11:14:35 2021
 
-@author: Kevin Lively and Mukhtar Lawan
+@author: Mukhtar Lawan
 """
 from pathlib import Path
 

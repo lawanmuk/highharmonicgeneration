@@ -9,7 +9,7 @@ description = "High-harmonic generation spectra from time-dependent current trac
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
-authors = [{ name = "Mukhtar Lawan" }, { name = "Kevin Lively" }]
+authors = [{ name = "Mukhtar Lawan" }]
 dependencies = [
     "numpy>=1.24",
     "matplotlib>=3.7",

@@ -116,9 +116,9 @@ ruff format .     # format
 
 CI runs linting, the tests on Python 3.10 to 3.13, figure regeneration and a dependency audit on every push and pull request.
 
-## Authors
+## Author
 
-Mukhtar Lawan and Kevin Lively. The original processing scripts in `legacy/` were written together in 2021; the `hhg` package is a rewrite of them with the corrections listed in [CHANGELOG.md](CHANGELOG.md).
+Mukhtar Lawan. The original processing scripts in `legacy/` was written in 2021; the `hhg` package is a rewrite with the corrections listed in [CHANGELOG.md](CHANGELOG.md).
 
 ## Contributing
 
