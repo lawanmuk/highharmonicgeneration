@@ -12,7 +12,7 @@ license = { text = "MIT" }
 authors = [{ name = "Mukhtar Lawan" }]
 dependencies = [
     "numpy>=1.24",
-    "matplotlib>=3.7",
+    "matplotlib>=3.10.9",
 ]
 
 [project.scripts]
