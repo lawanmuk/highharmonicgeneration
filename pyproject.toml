@@ -11,7 +11,7 @@ requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [{ name = "Mukhtar Lawan" }]
 dependencies = [
-    "numpy>=1.24",
+    "numpy>=2.2.6",
     "matplotlib>=3.7",
 ]
 
