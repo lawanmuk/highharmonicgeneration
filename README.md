@@ -1,42 +1,129 @@
 # High-Harmonic Generation from Time-Dependent Currents
 
-This repository contains simulation codes developed to study **high-harmonic generation (HHG)** arising from **time-dependent electronic currents** driven by tailored ultrafast pump pulses. The work focuses on how different **pump pulse configurations** influence the nonlinear current response and the resulting harmonic spectra.
+[![CI](https://github.com/lawanmuk/highharmonicgeneration/actions/workflows/ci.yml/badge.svg)](https://github.com/lawanmuk/highharmonicgeneration/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-The codes were developed as part of a research project investigating **nonlinear light–matter interactions** in solid-state and low-dimensional systems.
+High-harmonic generation (HHG) spectra of monolayer hexagonal boron nitride (hBN) driven by three pump configurations: **linear**, **collinear two-color** and **bicircular**. The time-dependent currents come from real-time TDDFT simulations; this repository holds those currents and the tested `hhg` Python package that turns them into harmonic spectra, harmonic yields and figures.
 
----
+## Overview
 
-## 🔬 Scientific Background
+- **`HHG_datasets/`**: total-current traces $\mathbf{J}(t)$ from real-time TDDFT, one file per run
+- **`hhg`** (in `src/hhg/`): a Python package that reads the traces, computes windowed HHG spectra by FFT, integrates harmonic yields and regenerates every figure
+- **`figures/`**: figures and a harmonic-yield table produced by `hhg-figures`
+- **`legacy/`** and **`results/matlab/`**: the original processing scripts and their outputs, kept for reference
 
-High-harmonic generation is a key nonlinear optical phenomenon that enables the production of coherent radiation at multiples of a driving laser frequency. In solids, HHG can be understood through the dynamics of **time-dependent currents**, which are strongly influenced by:
-- Band structure
-- Carrier dynamics
-- Polarization and symmetry of the driving field
+## Physics
 
-This repository explores HHG driven by:
-- **Linearly polarized pump pulses**
-- **Colinear multi-frequency pump pulses**
-- **Bicircular pump pulse configurations**
+The emitted intensity is proportional to the squared dipole acceleration, which for a current $\mathbf{J}(t)$ is
 
-Each configuration probes different symmetry and selection-rule effects in the emitted harmonic spectra.
+$$S(\omega) = \omega^2 \sum_{i=x,y,z} \left| \int J_i(t)\, w(t)\, e^{i\omega t}\, dt \right|^2 ,$$
 
----
+with the smooth-step window $w(t) = 1 - 3x^2 + 2x^3$, $x = t/t_{\max}$, which goes from 1 to 0 with zero slope at both ends and suppresses truncation artefacts. Harmonic orders are $N = \omega/\omega_0$ with the pump photon energy $\hbar\omega_0 = 0.8266$ eV (wavelength 1.5 µm).
 
-## ⚙️ Pump Pulse Configurations Implemented
+**Pump configurations**
 
-### 1️⃣ Linear Pump Pulse
-- Single-frequency $\omega$, linearly polarized driving field
-- Used as a reference configuration
-- Captures standard odd-harmonic generation mechanisms
+| Configuration | Field | What it probes |
+|---|---|---|
+| Linear | single color $\omega_0$, linearly polarized | reference case |
+| Collinear | $\omega_0$ and $2\omega_0$, polarized along the same axis | interference between the two colors |
+| Bicircular | $\omega_0$ and $2\omega_0$, counter-rotating circular polarization | symmetry-controlled selection rules |
 
-### 2️⃣ Colinear Pump Pulse
-- Multi-frequency $\omega$ - $2\omega$ pulses polarized along the same axis
-- Allows control over interference effects and harmonic enhancement
-- Useful for studying phase-dependent nonlinear response
+The bicircular field has three-fold rotational symmetry, which allows only harmonics $N = 3n \pm 1$ and suppresses $N = 3n$. The data show this clearly: harmonics 3, 9 and 12 are $10^3$ to $10^4$ times weaker than their neighbours. Harmonic 6 is not suppressed because $6\omega_0 \approx 5$ eV lies at the hBN band gap, where emission is not purely harmonic.
 
-### 3️⃣ Bicircular Pump Pulse
-- Two counter-rotating circularly polarized fields
-- Enables symmetry-controlled harmonic generation
-- Produces selection-rule-driven harmonic orders
+![Bicircular selection rule](figures/bicircular_selection_rule_I=1.5e12.png)
 
----
+![Pump configurations compared](figures/pump_comparison_I=1.5e12.png)
+
+![Linear pump intensity scan](figures/linear_intensity_scan.png)
+
+## Installation
+
+Requires Python 3.10 or newer.
+
+```bash
+git clone https://github.com/lawanmuk/highharmonicgeneration.git
+cd highharmonicgeneration
+pip install -e .
+```
+
+For development (tests and linting): `pip install -e ".[dev]"`
+
+## Usage
+
+Regenerate every figure and the yield table (about 10 seconds):
+
+```bash
+hhg-figures --data HHG_datasets --out figures
+```
+
+From Python:
+
+```python
+import hhg
+
+trace = hhg.load_current("HHG_datasets/bcp_I=1.5e12total_current.dat")
+omega, spectrum = hhg.hhg_spectrum(trace)            # FFT, all current components
+orders = omega / hhg.OMEGA_PUMP
+
+yields = hhg.harmonic_yields(omega, spectrum, hhg.OMEGA_PUMP, range(1, 15))
+contrast = hhg.selection_rule_contrast(
+    hhg.harmonic_yields(omega, spectrum, hhg.OMEGA_PUMP, [1, 2, 4, 5, 7, 8]),
+    hhg.harmonic_yields(omega, spectrum, hhg.OMEGA_PUMP, [3, 9, 12]),
+)
+```
+
+## Data
+
+Each file follows the `total_current` layout of real-time TDDFT codes such as Octopus: comment lines starting with `#`, then one row per time step with `Iter, t, I(1), I(2), I(3), ...` in atomic units. The time step is 0.08 a.u. in every run.
+
+| File | Pump | Peak intensity (W/cm²) | Time steps | Duration (fs) |
+|---|---|---|---|---|
+| `lp_I=1e11total_current.dat` | linear | 1e11 | 51678 | 100.0 |
+| `lp_I=1e12total_current.dat` | linear | 1e12 | 51678 | 100.0 |
+| `lp_I=1.5e12total_current.dat` | linear | 1.5e12 | 51678 | 100.0 |
+| `lp_I=5e12total_current.dat` | linear | 5e12 | 51678 | 100.0 |
+| `cp_I=1.5e12total_current.dat` | collinear | 1.5e12 | 90751 | 175.6 |
+| `cp_I=5e12total_current.dat` | collinear | 5e12 | 72363 | 140.0 |
+| `bcp_I=1.5e12total_current.dat` | bicircular | 1.5e12 | 72363 | 140.0 |
+| `bcp_I=5e12total_current.dat` | bicircular | 5e12 (see note) | 72363 | 140.0 |
+| `bcp_pumpprobe_total_current.dat` | bicircular, pump-probe | – | 30766 | 59.5 |
+
+**Note on `bcp_I=5e12`.** Its HHG spectrum agrees with the 1.5e12 bicircular run to four significant digits, although the time traces differ, while the linear and collinear spectra change by orders of magnitude over the same intensity range. The labelled intensity is therefore being checked against the simulation input, and the bicircular intensity scan is left out of the figures until then.
+
+## Project structure
+
+```
+src/hhg/
+    constants.py    unit conversions and the pump frequency
+    io.py           reading current files, parsing run names
+    spectrum.py     smooth-step window, direct and FFT transforms, HHG spectrum
+    harmonics.py    harmonic yields and selection-rule contrast
+    figures.py      the hhg-figures command
+tests/              pytest suite, including physics checks on the datasets
+figures/            generated figures and harmonic_yields.csv
+legacy/             original Python and MATLAB processing scripts
+results/matlab/     spectra written by the MATLAB script
+```
+
+## Testing
+
+```bash
+pytest            # unit tests and dataset regression tests
+ruff check .      # lint
+ruff format .     # format
+```
+
+CI runs linting, the tests on Python 3.10 to 3.13, figure regeneration and a dependency audit on every push and pull request.
+
+## Authors
+
+Mukhtar Lawan and Kevin Lively. The original processing scripts in `legacy/` were written together in 2021; the `hhg` package is a rewrite of them with the corrections listed in [CHANGELOG.md](CHANGELOG.md).
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## License
+
+MIT, see [LICENSE](LICENSE).
