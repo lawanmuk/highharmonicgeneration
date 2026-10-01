@@ -4,13 +4,14 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
+
+### Added
 - Pinned `requirements.txt` (generated with `uv pip compile --universal`) for reproducible installs on Python 3.10 and newer.
 
 ## [0.1.0] - 2026-09-30
 
 ### Added
-
-- `hhg` Python package with a `pyproject.toml` build definition: current-file reader, run-name parser, smooth-step window, direct and FFT transforms, HHG spectrum over all current components, harmonic yields and selection-rule contrast.
+- `hhg` Python package with a `pyproject.toml` build definition: ...
 - `hhg-figures` command that regenerates every figure and `figures/harmonic_yields.csv`.
 - pytest suite, including physics regression tests on the datasets (bicircular 3n +- 1 selection rule).
 - GitHub Actions CI (lint, tests on Python 3.10 to 3.13, figure regeneration, pip-audit) and Dependabot.
