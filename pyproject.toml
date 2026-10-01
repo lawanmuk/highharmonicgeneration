@@ -21,7 +21,7 @@ hhg-figures = "hhg.figures:main"
 [project.optional-dependencies]
 dev = [
     "pytest>=8",
-    "ruff>=0.5",
+    "ruff>=0.16.9",
 ]
 
 [tool.setuptools.packages.find]
