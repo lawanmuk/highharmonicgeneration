@@ -22,7 +22,7 @@ def contrast(name):
 
 
 @needs_data
-@pytest.mark.parametrize("name", ["bcp_I=1.5e12", "bcp_I=5e12"])
+@pytest.mark.parametrize("name", ["bcp_I=1.5e12", "bcp_I=1.5e12_run2"])
 def test_bicircular_obeys_3n_plus_minus_1_rule(name):
     assert contrast(name) < 1e-2
 
@@ -55,3 +55,32 @@ def test_processed_spectrum_file_is_not_mistaken_for_a_current():
         pytest.skip("processed file has been moved")
     with pytest.raises(ValueError):
         hhg.load_current(processed)
+
+
+FIELD_RATIO_5_TO_1P5 = np.sqrt(5.0 / 1.5)
+
+
+@needs_data
+@pytest.mark.parametrize("pulse", ["lp", "cp"])
+def test_intensity_labels_match_linear_response(pulse):
+    # Early in the pulse the current is linear in the field, so 5e12 vs 1.5e12 W/cm^2
+    # must give a current ratio of sqrt(5 / 1.5) = 1.826.
+    weak = hhg.load_current(DATA / f"{pulse}_I=1.5e12total_current.dat")
+    strong = hhg.load_current(DATA / f"{pulse}_I=5e12total_current.dat")
+    for t_max in (20.0, 50.0, 100.0):
+        ratio = hhg.early_response_ratio(weak, strong, t_max)
+        assert ratio == pytest.approx(FIELD_RATIO_5_TO_1P5, rel=5e-3)
+
+
+@needs_data
+def test_second_bicircular_run_is_also_1p5e12():
+    # bcp_I=1.5e12_run2 was originally saved as "bcp_I=5e12". It does not scale like a
+    # 5e12 run, and its spectrum matches the 1.5e12 run, which confirms the corrected label.
+    first = hhg.load_current(DATA / "bcp_I=1.5e12total_current.dat")
+    second = hhg.load_current(DATA / "bcp_I=1.5e12_run2total_current.dat")
+    ratio = hhg.early_response_ratio(first, second, 20.0)
+    assert abs(ratio - FIELD_RATIO_5_TO_1P5) > 0.5
+    omega, s_first = hhg.hhg_spectrum(first)
+    _, s_second = hhg.hhg_spectrum(second)
+    band = (omega > 0.5 * hhg.OMEGA_PUMP) & (omega < 20 * hhg.OMEGA_PUMP)
+    assert np.max(np.abs(s_first[band] - s_second[band])) < 5e-3 * s_first[band].max()

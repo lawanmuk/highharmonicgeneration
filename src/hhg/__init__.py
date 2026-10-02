@@ -4,6 +4,7 @@ All quantities are in atomic units unless a name says otherwise.
 """
 
 from hhg.constants import AU_TO_FS, HARTREE_TO_EV, OMEGA_PUMP
+from hhg.diagnostics import early_response_ratio
 from hhg.figures import make_figures
 from hhg.harmonics import harmonic_yields, selection_rule_contrast
 from hhg.io import CurrentTrace, RunInfo, load_current, parse_run_name
@@ -20,6 +21,7 @@ __all__ = [
     "OMEGA_PUMP",
     "CurrentTrace",
     "RunInfo",
+    "early_response_ratio",
     "fourier_direct",
     "fourier_fft",
     "harmonic_yields",

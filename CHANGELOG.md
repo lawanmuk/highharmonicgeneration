@@ -6,7 +6,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- `hhg.early_response_ratio`: checks intensity labels from the linear early-time response, without the simulation input.
+- Dataset tests confirming the linear and collinear intensity labels and the corrected bicircular label.
+- Run-name parser accepts a tag after the intensity, for example `bcp_I=1.5e12_run2`.
 - Pinned `requirements.txt` (generated with `uv pip compile --universal`) for reproducible installs on Python 3.10 and newer.
+
+### Fixed
+- `bcp_I=5e12total_current.dat` was mislabelled: it is a second run at 1.5e12 W/cm² and is now `bcp_I=1.5e12_run2total_current.dat`. Found from the linear early-time response and confirmed by the author.
+- README grammar in the Author section.
+
+### Changed
+- README data table and note describe the renamed bicircular run.
 
 ## [0.1.0] - 2026-09-30
 

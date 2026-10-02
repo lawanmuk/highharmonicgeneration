@@ -86,10 +86,10 @@ Each file follows the `total_current` layout of real-time TDDFT codes such as Oc
 | `cp_I=1.5e12total_current.dat` | collinear | 1.5e12 | 90751 | 175.6 |
 | `cp_I=5e12total_current.dat` | collinear | 5e12 | 72363 | 140.0 |
 | `bcp_I=1.5e12total_current.dat` | bicircular | 1.5e12 | 72363 | 140.0 |
-| `bcp_I=5e12total_current.dat` | bicircular | 5e12 (see note) | 72363 | 140.0 |
+| `bcp_I=1.5e12_run2total_current.dat` | bicircular, second run (see note) | 1.5e12 | 72363 | 140.0 |
 | `bcp_pumpprobe_total_current.dat` | bicircular, pump-probe | – | 30766 | 59.5 |
 
-**Note on `bcp_I=5e12`.** Its HHG spectrum agrees with the 1.5e12 bicircular run to four significant digits, although the time traces differ, while the linear and collinear spectra change by orders of magnitude over the same intensity range. The labelled intensity is therefore being checked against the simulation input, and the bicircular intensity scan is left out of the figures until then.
+**Note on `bcp_I=1.5e12_run2`.** This file was originally named `bcp_I=5e12`, but it is a second 1.5e12 W/cm² bicircular run. The data showed this before the label was confirmed: early in the pulse the current is linear in the field, so a 5e12 run must carry √(5/1.5) = 1.83 times the current of the 1.5e12 run. The linear and collinear pairs meet this to within 0.1 %, while this file gave 0.58, 1.55 and 1.45 over the first 20, 50 and 100 a.u. Its HHG spectrum matches the first 1.5e12 run to four significant digits, and the two traces are related by a rotation of about 120° and a time shift, a symmetry of the bicircular field, which suggests the two runs differ in field phase. The check is `hhg.early_response_ratio`; `tests/test_datasets.py` guards both the corrected label and the linear and collinear labels.
 
 ## Project structure
 
@@ -118,7 +118,7 @@ CI runs linting, the tests on Python 3.10 to 3.13, figure regeneration and a dep
 
 ## Author
 
-Mukhtar Lawan. The original processing scripts in `legacy/` was written in 2021; the `hhg` package is a rewrite with the corrections listed in [CHANGELOG.md](CHANGELOG.md).
+Mukhtar Lawan. The original processing scripts in `legacy/` were written in 2021; the `hhg` package is a rewrite with the corrections listed in [CHANGELOG.md](CHANGELOG.md).
 
 ## Contributing
 

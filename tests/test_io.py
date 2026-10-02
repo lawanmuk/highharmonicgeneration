@@ -54,6 +54,7 @@ def test_wrong_current_shape_is_rejected():
         ("lp_I=1e11total_current.dat", "lp", 1e11, None),
         ("cp_I=1.5e12total_current.dat", "cp", 1.5e12, None),
         ("bcp_I=5e12total_current.dat", "bcp", 5e12, None),
+        ("bcp_I=1.5e12_run2total_current.dat", "bcp", 1.5e12, "run2"),
         ("bcp_pumpprobe_total_current.dat", "bcp", None, "pumpprobe"),
     ],
 )

@@ -208,7 +208,7 @@ def write_yield_table(runs, out_dir: Path) -> Path:
     """CSV of integrated harmonic yields, one row per run: the table view of the figures."""
     path = out_dir / "harmonic_yields.csv"
     with path.open("w", newline="") as handle:
-        writer = csv.writer(handle)
+        writer = csv.writer(handle, lineterminator="\n")
         writer.writerow(["run", "pulse", "intensity_w_cm2", *[f"H{n}" for n in YIELD_ORDERS]])
         for key, (info, source) in runs.items():
             omega, spectrum = _spectrum(source)
@@ -227,9 +227,9 @@ def write_yield_table(runs, out_dir: Path) -> Path:
 def make_figures(data_dir, out_dir) -> list[Path]:
     """Create all figures and the yield table; return the paths written.
 
-    The bicircular runs are not plotted as an intensity scan: the 1.5e12 and 5e12 W/cm^2
-    files give spectra that agree to 0.2 %, which needs checking against the simulation input
-    before the two can be presented as different intensities.
+    Only one bicircular intensity (1.5e12 W/cm^2) is available, so there is no bicircular
+    intensity scan. Runs with a tag (``run2``, ``pumpprobe``) are left out of the pump
+    comparison and appear only in the yield table.
     """
     data_dir, out_dir = Path(data_dir), Path(out_dir)
     runs = _runs(data_dir)
