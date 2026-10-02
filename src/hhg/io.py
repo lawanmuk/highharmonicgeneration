@@ -19,7 +19,9 @@ COL_TIME = 1
 COL_CURRENT = slice(2, 5)
 
 _NAME = re.compile(
-    r"^(?P<pulse>lp|cp|bcp)_(?:I=(?P<intensity>[0-9.eE+-]+)|(?P<tag>[a-z]+)_?)total_current"
+    r"^(?P<pulse>lp|cp|bcp)_"
+    r"(?:I=(?P<intensity>[0-9.eE+-]+)(?:_(?P<run_tag>[a-z0-9]+))?|(?P<tag>[a-z]+)_?)"
+    r"total_current"
 )
 
 PULSE_NAMES = {"lp": "linear", "cp": "collinear", "bcp": "bicircular"}
@@ -79,7 +81,11 @@ class RunInfo:
 
 
 def parse_run_name(name: str) -> RunInfo:
-    """Parse names like ``lp_I=1.5e12total_current.dat`` or ``bcp_pumpprobe_total_current.dat``."""
+    """Parse a dataset file name into pulse type, intensity and an optional tag.
+
+    Accepted forms: ``lp_I=1.5e12total_current.dat``, ``bcp_I=1.5e12_run2total_current.dat``
+    (a further run at the same intensity) and ``bcp_pumpprobe_total_current.dat``.
+    """
     match = _NAME.match(Path(name).name)
     if match is None:
         raise ValueError(f"cannot parse run name: {name}")
@@ -87,5 +93,5 @@ def parse_run_name(name: str) -> RunInfo:
     return RunInfo(
         pulse=match["pulse"],
         intensity_w_cm2=float(intensity) if intensity else None,
-        tag=match["tag"],
+        tag=match["run_tag"] or match["tag"],
     )
