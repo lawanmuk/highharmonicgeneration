@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- `hhg.circular_components`: splits the in-plane HHG spectrum into counter-clockwise (S+) and clockwise (S-) circular parts, with tests for the sign convention, linear and elliptical fields, rotation invariance and S+ + S- = in-plane spectrum.
+- `hhg.current_transform`: the windowed Fourier transform of each current component, shared by `hhg_spectrum` and the polarization analysis.
 - `hhg.early_response_ratio`: checks intensity labels from the linear early-time response, without the simulation input.
 - Dataset tests confirming the linear and collinear intensity labels and the corrected bicircular label.
 - Run-name parser accepts a tag after the intensity, for example `bcp_I=1.5e12_run2`.
