@@ -62,16 +62,25 @@ def fourier_fft(time: np.ndarray, signal: np.ndarray, pad_factor: int = 4):
     return omega, transform * phase
 
 
+def current_transform(trace: CurrentTrace, omega: np.ndarray | None = None, window: bool = True):
+    """Fourier transform J_i(w) of each current component, optionally windowed.
+
+    With ``omega=None`` the transform is computed by FFT on its natural grid; otherwise it is
+    evaluated exactly at the given frequencies (Hartree). Returns ``(omega, J)`` with ``J`` of
+    shape ``(n_omega, 3)``.
+    """
+    current = trace.current * smooth_step_window(trace.time)[:, None] if window else trace.current
+    if omega is None:
+        return fourier_fft(trace.time, current)
+    omega = np.asarray(omega, dtype=float)
+    return omega, fourier_direct(trace.time, current, omega)
+
+
 def hhg_spectrum(trace: CurrentTrace, omega: np.ndarray | None = None, window: bool = True):
     """HHG spectrum S(w) = w^2 * sum_i |J_i(w)|^2 of a current trace.
 
     With ``omega=None`` the spectrum is computed by FFT on its natural grid; otherwise the
     exact transform is evaluated at the given frequencies (Hartree). Returns ``(omega, S)``.
     """
-    current = trace.current * smooth_step_window(trace.time)[:, None] if window else trace.current
-    if omega is None:
-        omega, transform = fourier_fft(trace.time, current)
-    else:
-        omega = np.asarray(omega, dtype=float)
-        transform = fourier_direct(trace.time, current, omega)
+    omega, transform = current_transform(trace, omega, window)
     return omega, omega**2 * np.sum(np.abs(transform) ** 2, axis=1)
