@@ -8,7 +8,7 @@ from hhg.diagnostics import early_response_ratio
 from hhg.figures import make_figures
 from hhg.harmonics import harmonic_yields, selection_rule_contrast
 from hhg.io import CurrentTrace, RunInfo, load_current, parse_run_name
-from hhg.polarization import circular_components
+from hhg.polarization import HarmonicPolarization, circular_components, harmonic_polarization
 from hhg.spectrum import (
     current_transform,
     fourier_direct,
@@ -22,12 +22,14 @@ __all__ = [
     "HARTREE_TO_EV",
     "OMEGA_PUMP",
     "CurrentTrace",
+    "HarmonicPolarization",
     "RunInfo",
     "circular_components",
     "current_transform",
     "early_response_ratio",
     "fourier_direct",
     "fourier_fft",
+    "harmonic_polarization",
     "harmonic_yields",
     "hhg_spectrum",
     "load_current",

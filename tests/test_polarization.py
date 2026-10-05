@@ -70,3 +70,44 @@ def test_direct_and_fft_transforms_agree():
     np.testing.assert_allclose(
         np.interp(omega, omega_fft, plus_fft), plus_direct, atol=5e-3 * plus_direct.max()
     )
+
+
+ORDERS = [2, 3, 4]
+
+
+@pytest.mark.parametrize("sense", [+1, -1])
+def test_circular_harmonic_has_unit_helicity(sense):
+    pol = hhg.harmonic_polarization(rotating_trace(sense=sense), ORDERS)
+    assert pol.helicity[1] == pytest.approx(sense, abs=1e-8)
+    assert pol.ellipticity[1] == pytest.approx(sense, abs=1e-4)
+
+
+def test_linear_harmonic_has_zero_helicity():
+    pol = hhg.harmonic_polarization(rotating_trace(ellipticity=0.0, angle=0.7), ORDERS)
+    assert pol.helicity[1] == pytest.approx(0.0, abs=1e-8)
+    assert pol.ellipticity[1] == pytest.approx(0.0, abs=1e-8)
+
+
+@pytest.mark.parametrize("e", [0.2, 0.5, 0.8])
+@pytest.mark.parametrize("sense", [+1, -1])
+def test_ellipticity_recovers_axis_ratio(e, sense):
+    pol = hhg.harmonic_polarization(rotating_trace(sense=sense, ellipticity=e, angle=0.3), ORDERS)
+    assert pol.ellipticity[1] == pytest.approx(sense * e, rel=1e-4)
+    assert pol.helicity[1] == pytest.approx(sense * 2 * e / (1 + e**2), rel=1e-4)
+
+
+def test_yields_add_up_to_harmonic_yields():
+    trace = rotating_trace(ellipticity=0.4, angle=0.5)
+    pol = hhg.harmonic_polarization(trace, ORDERS)
+    omega, spectrum = hhg.hhg_spectrum(trace)
+    np.testing.assert_allclose(
+        pol.total, hhg.harmonic_yields(omega, spectrum, W0, ORDERS), rtol=1e-8
+    )
+
+
+def test_two_harmonics_with_opposite_rotation():
+    # The bicircular pattern in miniature: one harmonic clockwise, the next counter-clockwise.
+    a = rotating_trace(order=4, sense=-1)
+    b = rotating_trace(order=5, sense=+1)
+    pol = hhg.harmonic_polarization(hhg.CurrentTrace(a.time, a.current + b.current), [4, 5])
+    np.testing.assert_allclose(pol.helicity, [-1.0, 1.0], atol=1e-6)
