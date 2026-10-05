@@ -6,6 +6,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- `hhg.harmonic_polarization` and `HarmonicPolarization`: circular yields, helicity and signed ellipticity for each harmonic order, with tests on circular, linear and elliptical fields.
+- Dataset tests for the bicircular helicity rule: 3n+1 and 3n-1 harmonics rotate in opposite directions in all three bicircular runs, and linear and collinear runs show no helicity.
+- `hhg-figures` now also writes `bicircular_polarization_I=1.5e12.png` (circular spectra and helicity per harmonic) and `harmonic_polarization.csv`; README section on harmonic polarization.
 - `hhg.circular_components`: splits the in-plane HHG spectrum into counter-clockwise (S+) and clockwise (S-) circular parts, with tests for the sign convention, linear and elliptical fields, rotation invariance and S+ + S- = in-plane spectrum.
 - `hhg.current_transform`: the windowed Fourier transform of each current component, shared by `hhg_spectrum` and the polarization analysis.
 - `hhg.early_response_ratio`: checks intensity labels from the linear early-time response, without the simulation input.
