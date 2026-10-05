@@ -84,3 +84,38 @@ def test_second_bicircular_run_is_also_1p5e12():
     _, s_second = hhg.hhg_spectrum(second)
     band = (omega > 0.5 * hhg.OMEGA_PUMP) & (omega < 20 * hhg.OMEGA_PUMP)
     assert np.max(np.abs(s_first[band] - s_second[band])) < 5e-3 * s_first[band].max()
+
+
+BICIRCULAR_RUNS = ["bcp_I=1.5e12", "bcp_I=1.5e12_run2", "bcp_pumpprobe_"]
+PLUS_ONE = [1, 4, 7, 10, 13]  # 3n + 1: follow the fundamental's rotation
+MINUS_ONE = [2, 5, 8, 11, 14]  # 3n - 1: follow the second harmonic's rotation
+STRONG = [1, 2, 4, 5, 8, 11, 13, 14]  # orders that come out almost fully circular
+
+
+def polarization(name, orders):
+    return hhg.harmonic_polarization(hhg.load_current(DATA / f"{name}total_current.dat"), orders)
+
+
+@needs_data
+@pytest.mark.parametrize("name", BICIRCULAR_RUNS)
+def test_bicircular_3n_plus_and_minus_1_rotate_in_opposite_directions(name):
+    # In a bicircular field, 3n+1 harmonics carry the helicity of the fundamental and
+    # 3n-1 harmonics the opposite one (here: 3n+1 clockwise, 3n-1 counter-clockwise).
+    assert np.all(polarization(name, PLUS_ONE).helicity < 0)
+    assert np.all(polarization(name, MINUS_ONE).helicity > 0)
+
+
+@needs_data
+@pytest.mark.parametrize("name", BICIRCULAR_RUNS)
+def test_strong_bicircular_harmonics_are_nearly_circular(name):
+    assert np.all(np.abs(polarization(name, STRONG).helicity) > 0.9)
+
+
+@needs_data
+@pytest.mark.parametrize(
+    "name", ["lp_I=1e11", "lp_I=1e12", "lp_I=1.5e12", "lp_I=5e12", "cp_I=1.5e12", "cp_I=5e12"]
+)
+def test_linear_and_collinear_harmonics_have_no_helicity(name):
+    # Below 0.01 for every run except lp_I=1e11, whose high orders sit about seven decades
+    # under the fundamental, close to the numerical noise floor (largest |h| there: 0.03).
+    assert np.all(np.abs(polarization(name, range(1, 15)).helicity) < 0.05)
