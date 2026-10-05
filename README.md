@@ -37,6 +37,18 @@ The bicircular field has three-fold rotational symmetry, which allows only harmo
 
 ![Linear pump intensity scan](figures/linear_intensity_scan.png)
 
+**Polarization of the harmonics**
+
+Splitting the in-plane current into its two circular parts,
+
+$$J_\pm(\omega) = \frac{J_x(\omega) \mp i J_y(\omega)}{\sqrt{2}}, \qquad S_\pm(\omega) = \omega^2 |J_\pm(\omega)|^2 ,$$
+
+separates emission rotating counter-clockwise ($S_+$, from $x$ towards $y$) from emission rotating clockwise ($S_-$). Integrating each around a harmonic gives yields $Y_\pm$ and the helicity $h = (Y_+ - Y_-)/(Y_+ + Y_-)$: $+1$ or $-1$ for circular light, 0 for linear.
+
+In the bicircular field each $3n+1$ harmonic takes the rotation of the $\omega_0$ pump and each $3n-1$ harmonic the rotation of the $2\omega_0$ pump, so neighbouring allowed harmonics rotate in opposite directions. The data follow this for every allowed order up to 14. Harmonics 1, 2, 4, 5, 8, 11, 13 and 14 are almost perfectly circular ($|h| > 0.95$); harmonics 7 and 10 have the right sign but are only partly circular ($h \approx -0.46$ and $-0.66$). For harmonic 7 this is probably because it overlaps the broad band-gap emission around orders 6 and 7. Linear and collinear runs give $h = 0$ for every harmonic, as they should. Per-harmonic values for every run are in `figures/harmonic_polarization.csv`.
+
+![Bicircular harmonics by rotation sense](figures/bicircular_polarization_I=1.5e12.png)
+
 ## Installation
 
 Requires Python 3.10 or newer.
@@ -51,7 +63,7 @@ For development (tests and linting): `pip install -e ".[dev]"`
 
 ## Usage
 
-Regenerate every figure and the yield table (about 10 seconds):
+Regenerate every figure and the yield and polarization tables (about 10 seconds):
 
 ```bash
 hhg-figures --data HHG_datasets --out figures
@@ -71,6 +83,10 @@ contrast = hhg.selection_rule_contrast(
     hhg.harmonic_yields(omega, spectrum, hhg.OMEGA_PUMP, [1, 2, 4, 5, 7, 8]),
     hhg.harmonic_yields(omega, spectrum, hhg.OMEGA_PUMP, [3, 9, 12]),
 )
+
+pol = hhg.harmonic_polarization(trace, range(1, 15))
+pol.helicity      # +1 counter-clockwise, -1 clockwise, 0 linear
+pol.ellipticity   # signed minor/major axis ratio
 ```
 
 ## Data
@@ -99,9 +115,11 @@ src/hhg/
     io.py           reading current files, parsing run names
     spectrum.py     smooth-step window, direct and FFT transforms, HHG spectrum
     harmonics.py    harmonic yields and selection-rule contrast
+    polarization.py circular components, helicity and ellipticity per harmonic
+    diagnostics.py  intensity-label check from the early linear response
     figures.py      the hhg-figures command
 tests/              pytest suite, including physics checks on the datasets
-figures/            generated figures and harmonic_yields.csv
+figures/            generated figures, harmonic_yields.csv and harmonic_polarization.csv
 legacy/             original Python and MATLAB processing scripts
 results/matlab/     spectra written by the MATLAB script
 ```

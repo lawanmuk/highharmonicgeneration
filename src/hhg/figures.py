@@ -1,4 +1,4 @@
-"""Regenerate every figure and the harmonic-yield table from the current datasets.
+"""Regenerate every figure and the harmonic yield and polarization tables from the datasets.
 
 Usage:  hhg-figures --data HHG_datasets --out figures
 """
@@ -16,10 +16,13 @@ import numpy as np  # noqa: E402
 from hhg.constants import OMEGA_PUMP  # noqa: E402
 from hhg.harmonics import harmonic_yields  # noqa: E402
 from hhg.io import PULSE_NAMES, load_current, parse_run_name  # noqa: E402
+from hhg.polarization import circular_components, harmonic_polarization  # noqa: E402
 from hhg.spectrum import hhg_spectrum  # noqa: E402
 
 # Validated reference palette: categorical for pulse types, one-hue blue ramp for intensity.
 CATEGORICAL = {"lp": "#2a78d6", "cp": "#eb6834", "bcp": "#1baf7a"}
+# Rotation sense: counter-clockwise (S+) blue, clockwise (S-) orange.
+ROTATION = {"plus": "#2a78d6", "minus": "#eb6834"}
 BLUE_RAMP = ["#6da7ec", "#2a78d6", "#1c5cab", "#0d366b"]
 SURFACE, INK, INK_2, MUTED, GRID, AXIS = (
     "#fcfcfb",
@@ -204,6 +207,98 @@ def _selection_rule(runs, key, out_dir):
     return path
 
 
+def _polarization(runs, key, out_dir):
+    if key not in runs:
+        return None
+    info, source = runs[key]
+    trace = load_current(source)
+    omega, s_plus, s_minus = circular_components(trace)
+    keep = omega <= 16 * OMEGA_PUMP
+    orders = np.array(list(YIELD_ORDERS))
+    helicity = harmonic_polarization(trace, orders).helicity
+    with plt.rc_context(STYLE):
+        fig, (top, bottom) = plt.subplots(
+            2, 1, figsize=(8, 7), sharex=True, gridspec_kw={"height_ratios": [3, 2]}
+        )
+        top.plot(
+            omega[keep] / OMEGA_PUMP,
+            s_plus[keep],
+            color=ROTATION["plus"],
+            label=r"$S_+$ counter-clockwise",
+        )
+        top.plot(
+            omega[keep] / OMEGA_PUMP,
+            s_minus[keep],
+            color=ROTATION["minus"],
+            label=r"$S_-$ clockwise",
+        )
+        top.set_yscale("log")
+        peak = max(s_plus[keep].max(), s_minus[keep].max())
+        top.set_ylim(peak * 1e-9, peak * 3)
+        top.set_ylabel(r"$\omega^2\,|J_\pm(\omega)|^2$ (arb. units)")
+        top.set_title(
+            f"Bicircular harmonics by rotation sense, I = {_fmt(info.intensity_w_cm2)} W/cm$^2$",
+            loc="left",
+        )
+        top.legend(loc="upper right")
+
+        forbidden = orders % 3 == 0
+        colors = np.where(helicity > 0, ROTATION["plus"], ROTATION["minus"])
+        bottom.bar(
+            orders[~forbidden],
+            helicity[~forbidden],
+            width=0.7,
+            color=colors[~forbidden],
+            edgecolor=SURFACE,
+            linewidth=2,
+        )
+        bottom.bar(
+            orders[forbidden],
+            helicity[forbidden],
+            width=0.7,
+            color=AXIS,
+            hatch="///",
+            edgecolor=MUTED,
+            linewidth=0.8,
+            label=r"$N = 3n$ (suppressed)",
+        )
+        bottom.axhline(0, color=AXIS, linewidth=0.8)
+        bottom.set_ylim(-1.1, 1.1)
+        bottom.set_yticks([-1, -0.5, 0, 0.5, 1])
+        bottom.set_ylabel("Helicity")
+        bottom.set_xlabel("Harmonic order N")
+        bottom.legend(loc="lower right", fontsize=9)
+        for ax in (top, bottom):
+            ax.grid(True, axis="y", color=GRID, linewidth=0.6)
+            ax.set_axisbelow(True)
+        bottom.set_xlim(0.3, 14.7)
+        bottom.set_xticks(orders)
+        path = out_dir / f"bicircular_polarization_I={_fmt(info.intensity_w_cm2)}.png"
+        fig.tight_layout()
+        fig.savefig(path, dpi=150)
+        plt.close(fig)
+    return path
+
+
+def write_polarization_table(runs, out_dir: Path) -> Path:
+    """CSV of the helicity of each harmonic, one row per run."""
+    path = out_dir / "harmonic_polarization.csv"
+    with path.open("w", newline="") as handle:
+        writer = csv.writer(handle, lineterminator="\n")
+        writer.writerow(["run", "pulse", "intensity_w_cm2", *[f"H{n}" for n in YIELD_ORDERS]])
+        for key, (info, source) in runs.items():
+            helicity = harmonic_polarization(load_current(source), YIELD_ORDERS).helicity
+            writer.writerow(
+                [
+                    key,
+                    PULSE_NAMES[info.pulse],
+                    info.intensity_w_cm2 or "",
+                    *[f"{h:+.3f}".replace("-0.000", "+0.000") for h in helicity],
+                ]
+            )
+    return path
+
+
 def write_yield_table(runs, out_dir: Path) -> Path:
     """CSV of integrated harmonic yields, one row per run: the table view of the figures."""
     path = out_dir / "harmonic_yields.csv"
@@ -225,7 +320,7 @@ def write_yield_table(runs, out_dir: Path) -> Path:
 
 
 def make_figures(data_dir, out_dir) -> list[Path]:
-    """Create all figures and the yield table; return the paths written.
+    """Create all figures and both tables; return the paths written.
 
     Only one bicircular intensity (1.5e12 W/cm^2) is available, so there is no bicircular
     intensity scan. Runs with a tag (``run2``, ``pumpprobe``) are left out of the pump
@@ -241,7 +336,9 @@ def make_figures(data_dir, out_dir) -> list[Path]:
         _intensity_scan(runs, "cp", out_dir),
         _pump_comparison(runs, 1.5e12, out_dir),
         _selection_rule(runs, "bcp_I=1.5e12", out_dir),
+        _polarization(runs, "bcp_I=1.5e12", out_dir),
         write_yield_table(runs, out_dir),
+        write_polarization_table(runs, out_dir),
     ]
     return [p for p in written if p is not None]
 
