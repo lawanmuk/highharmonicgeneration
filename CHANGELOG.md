@@ -5,6 +5,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-06
+
 ### Added
 - `hhg.harmonic_polarization` and `HarmonicPolarization`: circular yields, helicity and signed ellipticity for each harmonic order, with tests on circular, linear and elliptical fields.
 - Dataset tests for the bicircular helicity rule: 3n+1 and 3n-1 harmonics rotate in opposite directions in all three bicircular runs, and linear and collinear runs show no helicity.
@@ -44,3 +46,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Removed
 - Duplicate copy of `lp_I=1.5e12total_current` in the script folder.
+
+[Unreleased]: https://github.com/lawanmuk/highharmonicgeneration/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/lawanmuk/highharmonicgeneration/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/lawanmuk/highharmonicgeneration/releases/tag/v0.1.0
