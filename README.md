@@ -117,6 +117,7 @@ src/hhg/
     harmonics.py    harmonic yields and selection-rule contrast
     polarization.py circular components, helicity and ellipticity per harmonic
     diagnostics.py  intensity-label check from the early linear response
+    timefreq.py     Gabor transform and time-resolved spectrogram
     figures.py      the hhg-figures command
 tests/              pytest suite, including physics checks on the datasets
 figures/            generated figures, harmonic_yields.csv and harmonic_polarization.csv

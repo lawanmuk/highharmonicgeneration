@@ -17,6 +17,8 @@ from hhg.spectrum import (
     smooth_step_window,
 )
 
+from hhg.timefreq import gabor_transform, spectrogram 
+
 __all__ = [
     "AU_TO_FS",
     "HARTREE_TO_EV",
