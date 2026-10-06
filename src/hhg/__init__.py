@@ -16,6 +16,7 @@ from hhg.spectrum import (
     hhg_spectrum,
     smooth_step_window,
 )
+from hhg.timefreq import gabor_transform, spectrogram
 
 __all__ = [
     "AU_TO_FS",
@@ -37,6 +38,10 @@ __all__ = [
     "parse_run_name",
     "selection_rule_contrast",
     "smooth_step_window",
+    "gabor_transform",
+    "spectrogram",
+    "smooth_step_window",
+    "spectrogram",
 ]
 
 __version__ = "0.2.0"

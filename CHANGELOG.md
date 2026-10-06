@@ -5,6 +5,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- `hhg.gabor_transform` and `hhg.spectrogram`: time-frequency analysis with a sliding Gaussian window, with tests for the sign convention, time and frequency resolution, edge handling and window summation.
+
 ## [0.2.0] - 2026-10-06
 
 ### Added
