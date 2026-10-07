@@ -49,6 +49,14 @@ In the bicircular field each $3n+1$ harmonic takes the rotation of the $\omega_0
 
 ![Bicircular harmonics by rotation sense](figures/bicircular_polarization_I=1.5e12.png)
 
+**Time-resolved emission**
+
+A Gabor transform slides a Gaussian window of width $\sigma$ along the current and Fourier-transforms each piece, which shows when each harmonic is emitted. The window sets a trade-off: the frequency resolution is $2\sqrt{\ln 2}/\sigma$ (full width at half maximum), the time resolution is about $\sigma$. The figure uses $\sigma$ = half a pump cycle, which keeps neighbouring harmonics apart while still resolving the emission within the pulse.
+
+Two stages show up for every pump type. While the pump is on (the first 8 or so cycles, where the response at the pump frequency itself is strong) harmonics appear at all orders, and in the bicircular case they come in the separate $3n \pm 1$ bands. After the pulse, emission below the hBN band gap (about order 6) stops, but emission between orders 5 and 12 keeps going until the end of the simulation. That is the interband polarization left behind by the pulse, which rings on because the simulation has no dephasing.
+
+![Time-resolved harmonic emission](figures/spectrogram_I=1.5e12.png)
+
 ## Installation
 
 Requires Python 3.10 or newer.

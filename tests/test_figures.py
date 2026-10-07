@@ -18,6 +18,7 @@ def test_make_figures_writes_all_outputs(tmp_path):
         "pump_comparison_I=1.5e12.png",
         "bicircular_selection_rule_I=1.5e12.png",
         "bicircular_polarization_I=1.5e12.png",
+        "spectrogram_I=1.5e12.png",
         "harmonic_yields.csv",
         "harmonic_polarization.csv",
     } <= names
