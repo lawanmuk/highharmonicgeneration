@@ -7,6 +7,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 - `hhg.gabor_transform` and `hhg.spectrogram`: time-frequency analysis with a sliding Gaussian window, with tests for the sign convention, time and frequency resolution, edge handling and window summation.
+- Tests that the Gabor transform recovers a linear chirp: the ridge follows the instantaneous frequency in both sweep directions, its width matches the exact result, and each frequency is found at its emission time.
+- `hhg-figures` now also writes `spectrogram_I=1.5e12.png`, the time-resolved emission for the linear, collinear and bicircular pumps; README section on time-resolved emission.
 
 ## [0.2.0] - 2026-10-06
 

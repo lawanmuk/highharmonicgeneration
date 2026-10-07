@@ -18,6 +18,7 @@ from hhg.harmonics import harmonic_yields  # noqa: E402
 from hhg.io import PULSE_NAMES, load_current, parse_run_name  # noqa: E402
 from hhg.polarization import circular_components, harmonic_polarization  # noqa: E402
 from hhg.spectrum import hhg_spectrum  # noqa: E402
+from hhg.timefreq import spectrogram  # noqa: E402
 
 # Validated reference palette: categorical for pulse types, one-hue blue ramp for intensity.
 CATEGORICAL = {"lp": "#2a78d6", "cp": "#eb6834", "bcp": "#1baf7a"}
@@ -33,6 +34,12 @@ SURFACE, INK, INK_2, MUTED, GRID, AXIS = (
     "#c3c2b7",
 )
 MAX_ORDER = 25
+CYCLE = 2 * np.pi / OMEGA_PUMP  # pump optical cycle, atomic units
+# Gabor window of half a cycle: harmonics stay separated (frequency FWHM about 0.5 w_0)
+# while the emission is still resolved to a fraction of the cycle.
+GABOR_SIGMA = CYCLE / 2
+SPECTROGRAM_ORDER = 20
+SPECTROGRAM_DECADES = 5
 YIELD_ORDERS = range(1, 15)
 
 STYLE = {
@@ -280,6 +287,72 @@ def _polarization(runs, key, out_dir):
     return path
 
 
+def _spectrogram_figure(runs, intensity, out_dir):
+    from matplotlib.colors import LinearSegmentedColormap
+
+    selected = [
+        (info, path)
+        for info, path in runs.values()
+        if info.intensity_w_cm2 == intensity and info.tag is None
+    ]
+    if not selected:
+        return None
+    order = {"lp": 0, "cp": 1, "bcp": 2}
+    selected.sort(key=lambda item: order[item[0].pulse])
+    # sequential: background colour for no signal, darkest blue for the strongest emission
+    cmap = LinearSegmentedColormap.from_list("hhg_blue", [SURFACE, "#cfe2f8", *BLUE_RAMP])
+    with plt.rc_context(STYLE):
+        fig, axes = plt.subplots(
+            len(selected), 1, figsize=(8, 2.6 * len(selected) + 0.8), sharex=True, squeeze=False
+        )
+        axes = axes[:, 0]
+        t_end = 0.0
+        for ax, (info, path) in zip(axes, selected, strict=True):
+            trace = load_current(path)
+            # stop 3 sigma before the end: the trace is cut off there while the current is
+            # still non-zero, and windows over the cut would show a broadband artefact
+            centers = np.arange(trace.time[0], trace.time[-1] - 3 * GABOR_SIGMA, GABOR_SIGMA / 4)
+            centers, omega, power = spectrogram(
+                trace, GABOR_SIGMA, centers, max_omega=SPECTROGRAM_ORDER * OMEGA_PUMP
+            )
+            level = np.log10(np.maximum(power / power.max(), 10.0**-SPECTROGRAM_DECADES))
+            image = ax.pcolormesh(
+                centers / CYCLE,
+                omega / OMEGA_PUMP,
+                level.T,
+                cmap=cmap,
+                vmin=-SPECTROGRAM_DECADES,
+                vmax=0,
+                shading="nearest",
+                rasterized=True,
+            )
+            t_end = max(t_end, centers[-1] / CYCLE)
+            ax.set_ylim(0, SPECTROGRAM_ORDER)
+            ax.set_yticks(range(0, SPECTROGRAM_ORDER + 1, 5))
+            ax.set_ylabel("Harmonic order")
+            ax.set_title(PULSE_NAMES[info.pulse].capitalize(), loc="left", fontsize=11)
+            for spine in ax.spines.values():
+                spine.set_visible(False)
+        axes[-1].set_xlim(0, t_end)
+        axes[-1].set_xlabel("Time (pump optical cycles)")
+        fig.suptitle(
+            f"Time-resolved harmonic emission, I = {_fmt(intensity)} W/cm$^2$",
+            x=0.02,
+            ha="left",
+            fontsize=12,
+            color=INK,
+        )
+        fig.tight_layout(rect=(0, 0, 0.9, 1))
+        bar_ax = fig.add_axes((0.91, 0.12, 0.018, 0.76))
+        bar = fig.colorbar(image, cax=bar_ax)
+        bar.set_label("log$_{10}$ intensity (each panel normalised)", color=INK_2)
+        bar.outline.set_visible(False)
+        path = out_dir / f"spectrogram_I={_fmt(intensity)}.png"
+        fig.savefig(path, dpi=150)
+        plt.close(fig)
+    return path
+
+
 def write_polarization_table(runs, out_dir: Path) -> Path:
     """CSV of the helicity of each harmonic, one row per run."""
     path = out_dir / "harmonic_polarization.csv"
@@ -337,6 +410,7 @@ def make_figures(data_dir, out_dir) -> list[Path]:
         _pump_comparison(runs, 1.5e12, out_dir),
         _selection_rule(runs, "bcp_I=1.5e12", out_dir),
         _polarization(runs, "bcp_I=1.5e12", out_dir),
+        _spectrogram_figure(runs, 1.5e12, out_dir),
         write_yield_table(runs, out_dir),
         write_polarization_table(runs, out_dir),
     ]
