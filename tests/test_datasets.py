@@ -119,3 +119,37 @@ def test_linear_and_collinear_harmonics_have_no_helicity(name):
     # Below 0.01 for every run except lp_I=1e11, whose high orders sit about seven decades
     # under the fundamental, close to the numerical noise floor (largest |h| there: 0.03).
     assert np.all(np.abs(polarization(name, range(1, 15)).helicity) < 0.05)
+
+
+CYCLE = 2 * np.pi / hhg.OMEGA_PUMP
+PULSE = (1.5 * CYCLE, 4.5 * CYCLE)  # the strong part of the pump pulse
+
+
+def timing(name, orders):
+    trace = hhg.load_current(DATA / f"{name}total_current.dat")
+    return hhg.cycle_profile(trace, orders, *PULSE)
+
+
+@needs_data
+@pytest.mark.parametrize("name", ["bcp_I=1.5e12", "bcp_I=1.5e12_run2"])
+def test_bicircular_harmonics_are_emitted_three_times_per_cycle(name):
+    # The bicircular field is a three-leaved pattern that repeats every third of a cycle.
+    # Orders 6 to 12 are left out: there the steady band-gap emission blurs the pattern.
+    profile = timing(name, [4, 5, 13, 14])
+    assert np.all(profile.bursts() == 3)
+    assert np.all(profile.modulation() > 0.3)
+
+
+@needs_data
+def test_bicircular_emission_times_repeat_between_runs():
+    first = timing("bcp_I=1.5e12", [4, 5, 13, 14]).burst_phase()
+    second = timing("bcp_I=1.5e12_run2", [4, 5, 13, 14]).burst_phase()
+    np.testing.assert_allclose(second, first, atol=0.02)
+
+
+@needs_data
+@pytest.mark.parametrize("name", ["cp_I=1.5e12", "cp_I=5e12"])
+def test_collinear_high_harmonics_are_emitted_once_per_cycle(name):
+    # Adding 2 w_0 to w_0 breaks the symmetry between the two halves of the cycle,
+    # so the high orders come out as a single burst per cycle.
+    assert np.all(timing(name, [13, 14, 16]).bursts() == 1)

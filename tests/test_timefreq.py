@@ -144,3 +144,62 @@ def test_each_frequency_is_found_at_its_emission_time():
         k = np.argmin(np.abs(omega - order * W0))
         expected = (omega[k] - CHIRP_START) / BETA
         assert centers[np.argmax(s[:, k])] == pytest.approx(expected, abs=10.0)
+
+
+CYCLE = 2 * np.pi / W0
+
+
+def burst_train(bursts, phase, order=11, shift=0.0, n_cycles=8, width=CYCLE / 30):
+    """A pump-like fundamental cos(w_0 t + 2 pi shift) and harmonic ``order`` emitted in short
+    bursts, ``bursts`` times per cycle, at cycle phase ``phase`` of that fundamental."""
+    time = np.arange(0.0, n_cycles * CYCLE, DT)
+    harmonic = np.zeros_like(time)
+    for k in range(n_cycles * bursts):
+        t_burst = (k / bursts + phase - shift) * CYCLE
+        harmonic += np.exp(-(((time - t_burst) / width) ** 2))
+    current = np.zeros((time.size, 3))
+    current[:, 0] = np.cos(W0 * time + 2 * np.pi * shift) + 0.01 * harmonic * np.cos(
+        order * W0 * time
+    )
+    return hhg.CurrentTrace(time, current)
+
+
+@pytest.mark.parametrize("bursts", [1, 2, 3])
+@pytest.mark.parametrize("phase", [0.0, 0.1, 0.27])
+def test_cycle_profile_finds_burst_count_and_time(bursts, phase):
+    phase = phase % (1 / bursts)
+    profile = hhg.cycle_profile(burst_train(bursts, phase), [11], 2 * CYCLE, 6 * CYCLE)
+    assert profile.bursts()[0] == bursts
+    found = profile.burst_phase()[0]
+    # compare on the circle of length 1 / bursts
+    difference = (found - phase + 0.5 / bursts) % (1 / bursts) - 0.5 / bursts
+    assert abs(difference) < 0.01
+    assert profile.modulation()[0] > 0.5
+
+
+def test_cycle_phase_follows_the_fundamental():
+    # Shifting the whole pattern in time must not change the phase found: it is measured
+    # against the current's own fundamental, not against the time axis.
+    a = hhg.cycle_profile(burst_train(2, 0.1), [11], 2 * CYCLE, 6 * CYCLE)
+    b = hhg.cycle_profile(burst_train(2, 0.1, shift=0.37), [11], 2 * CYCLE, 6 * CYCLE)
+    assert b.burst_phase()[0] == pytest.approx(a.burst_phase()[0], abs=0.01)
+
+
+def test_steady_emission_has_no_modulation():
+    time = np.arange(0.0, 8 * CYCLE, DT)
+    current = np.zeros((time.size, 3))
+    current[:, 0] = np.cos(W0 * time) + 0.01 * np.cos(11 * W0 * time)
+    profile = hhg.cycle_profile(hhg.CurrentTrace(time, current), [11], 2 * CYCLE, 6 * CYCLE)
+    assert profile.modulation()[0] < 0.02
+
+
+def test_cycle_profile_shapes_and_normalisation():
+    profile = hhg.cycle_profile(burst_train(3, 0.1), [9, 11, 13], 2 * CYCLE, 6 * CYCLE, n_bins=24)
+    assert profile.intensity.shape == (3, 24)
+    np.testing.assert_allclose(profile.intensity.max(axis=1), 1.0)
+    assert profile.phase[0] == pytest.approx(0.5 / 24)
+
+
+def test_cycle_profile_needs_a_full_cycle():
+    with pytest.raises(ValueError):
+        hhg.cycle_profile(burst_train(1, 0.0), [11], 2 * CYCLE, 2.5 * CYCLE)

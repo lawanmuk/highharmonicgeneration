@@ -9,6 +9,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `hhg.gabor_transform` and `hhg.spectrogram`: time-frequency analysis with a sliding Gaussian window, with tests for the sign convention, time and frequency resolution, edge handling and window summation.
 - Tests that the Gabor transform recovers a linear chirp: the ridge follows the instantaneous frequency in both sweep directions, its width matches the exact result, and each frequency is found at its emission time.
 - `hhg-figures` now also writes `spectrogram_I=1.5e12.png`, the time-resolved emission for the linear, collinear and bicircular pumps; README section on time-resolved emission.
+- `hhg.cycle_profile` and `CycleProfile`: folds the emission of each harmonic onto one pump cycle and gives the number of bursts per cycle, the emission time (cycle phase) and the strength of the burst pattern, with tests on synthetic burst trains. Dataset tests: bicircular harmonics are emitted three times per cycle, at the same cycle phase in both runs, and collinear high harmonics once per cycle.
 
 ## [0.2.0] - 2026-10-06
 
