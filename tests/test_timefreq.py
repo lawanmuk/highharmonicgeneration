@@ -203,3 +203,32 @@ def test_cycle_profile_shapes_and_normalisation():
 def test_cycle_profile_needs_a_full_cycle():
     with pytest.raises(ValueError):
         hhg.cycle_profile(burst_train(1, 0.0), [11], 2 * CYCLE, 2.5 * CYCLE)
+
+
+def _spread(x, weights):
+    p = weights / weights.sum()
+    mean = np.sum(x * p)
+    return np.sqrt(np.sum((x - mean) ** 2 * p))
+
+
+@pytest.mark.parametrize("sigma_in_cycles", [0.125, 0.25, 0.5, 1.0])
+def test_time_frequency_product_is_at_the_gabor_limit(sigma_in_cycles):
+    # For a Gaussian window the time and frequency spreads satisfy
+    #     sigma_t = sigma / sqrt(2),   sigma_w = 1 / (sigma sqrt(2)),   sigma_t sigma_w = 1/2,
+    # so a shorter window trades frequency resolution for time resolution, and the product is
+    # fixed. Time is measured in units of the pump cycle, frequency in units of w_0.
+    sigma = sigma_in_cycles * CYCLE
+    # frequency spread of a tone, from |G|^2 at one window centre
+    tone = np.cos(5 * W0 * TIME)
+    omega, g = hhg.gabor_transform(TIME, tone, sigma, [1500.0], max_omega=10 * W0, pad_factor=16)
+    sigma_w = _spread(omega / W0, np.abs(g[0]) ** 2)
+    # time spread of a very short burst at order 5, from the spectrogram at that frequency
+    burst = np.cos(5 * W0 * TIME) * np.exp(-(((TIME - 1500.0) / (CYCLE / 200)) ** 2))
+    trace = hhg.CurrentTrace(TIME, np.stack([burst, 0 * burst, 0 * burst], axis=1))
+    centers = np.arange(1500.0 - 4 * sigma, 1500.0 + 4 * sigma, 0.4)
+    centers, omega_s, power = hhg.spectrogram(trace, sigma, centers, max_omega=10 * W0)
+    k = np.argmin(np.abs(omega_s - 5 * W0))
+    sigma_t = _spread(centers / CYCLE, power[:, k])
+    assert sigma_t == pytest.approx(sigma_in_cycles / np.sqrt(2), rel=0.03)
+    assert sigma_w == pytest.approx(1 / (2 * np.pi * np.sqrt(2) * sigma_in_cycles), rel=0.03)
+    assert 2 * np.pi * sigma_t * sigma_w == pytest.approx(0.5, rel=0.03)
