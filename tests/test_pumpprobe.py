@@ -73,4 +73,3 @@ def test_pump_probe_difference_is_weak_at_low_harmonic_orders():
         k = np.argmin(np.abs(omega - order * hhg.OMEGA_PUMP))
         ratio = difference[k - 3 : k + 4].max() / reference[k - 3 : k + 4].max()
         assert ratio < 1e-2
-    
