@@ -5,6 +5,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-12
+
 ### Added
 - Test that the time and frequency spreads of the Gabor transform satisfy the Gaussian limit (product 1/2) at four window widths, and a README paragraph on the resolution trade-off.
 - `hhg.gabor_transform` and `hhg.spectrogram`: time-frequency analysis with a sliding Gaussian window, with tests for the sign convention, time and frequency resolution, edge handling and window summation.
@@ -54,6 +56,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Removed
 - Duplicate copy of `lp_I=1.5e12total_current` in the script folder.
 
-[Unreleased]: https://github.com/lawanmuk/highharmonicgeneration/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/lawanmuk/highharmonicgeneration/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/lawanmuk/highharmonicgeneration/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/lawanmuk/highharmonicgeneration/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/lawanmuk/highharmonicgeneration/releases/tag/v0.1.0
