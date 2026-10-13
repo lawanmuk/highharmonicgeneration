@@ -353,6 +353,71 @@ def _spectrogram_figure(runs, intensity, out_dir):
     return path
 
 
+def _probe_response_figure(data_dir: Path, out_dir: Path):
+    """Probe response: the pump-probe current minus the pump-only current, in time and order."""
+    probe_path = data_dir / "bcp_pumpprobe_total_current.dat"
+    pump_path = data_dir / "bcp_I=1.5e12total_current.dat"
+    if not (probe_path.exists() and pump_path.exists()):
+        return None
+    probe, pump = load_current(probe_path), load_current(pump_path)
+    n = min(probe.time.size, pump.time.size)
+    time = probe.time[:n]
+    pp, pu = probe.current[:n, 0], pump.current[:n, 0]
+    difference = pp - pu
+    # The runs are identical until the probe kick, so the first nonzero sample marks it.
+    onset = time[np.argmax(np.abs(difference) > 1e-9 * np.abs(pu).max())]
+    fs_per_au = 0.02418884
+    window = np.hanning(n)
+    omega = np.fft.rfftfreq(n, d=probe.dt) * 2 * np.pi
+    orders = omega / OMEGA_PUMP
+    keep = (orders >= 1) & (orders <= MAX_ORDER)
+    pump_amp = np.abs(np.fft.rfft(pu * window))
+    diff_amp = np.abs(np.fft.rfft(difference * window))
+    with plt.rc_context(STYLE):
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8, 6.2), gridspec_kw={"hspace": 0.45})
+        ax1.plot(time * fs_per_au, 100 * difference / np.abs(pu).max(), color=CATEGORICAL["lp"])
+        ax1.axvline(onset * fs_per_au, color=INK_2, lw=0.8, ls="--")
+        ax1.text(
+            onset * fs_per_au + 0.3,
+            ax1.get_ylim()[1] * 0.8,
+            f"kick at {onset * fs_per_au:.2f} fs",
+            color=INK_2,
+            fontsize=9,
+        )
+        ax1.axhline(0, color=GRID, lw=0.8)
+        ax1.set_xlabel("Time (fs)")
+        ax1.set_ylabel("Change (% of pump peak)")
+        ax1.set_title("Probe response: pump-probe minus pump-only, x current", loc="left")
+        ax2.semilogy(
+            orders[keep],
+            pump_amp[keep] / pump_amp[keep].max(),
+            color=CATEGORICAL["lp"],
+            label="pump only",
+        )
+        ax2.semilogy(
+            orders[keep],
+            diff_amp[keep] / pump_amp[keep].max(),
+            color=CATEGORICAL["cp"],
+            label="probe response",
+        )
+        ax2.set_xlabel("Harmonic order")
+        ax2.set_ylabel("Amplitude (relative)")
+        ax2.set_xlim(1, MAX_ORDER)
+        ax2.set_title("Spectrum of the pump and of the probe response", loc="left")
+        ax2.legend(loc="upper right")
+        fig.suptitle(
+            f"Pump-probe run, bicircular pump at I = {_fmt(1.5e12)} W/cm$^2$",
+            x=0.02,
+            ha="left",
+            fontsize=11,
+            color=INK,
+        )
+        path = out_dir / "probe_response.png"
+        fig.savefig(path, dpi=150)
+        plt.close(fig)
+    return path
+
+
 def write_polarization_table(runs, out_dir: Path) -> Path:
     """CSV of the helicity of each harmonic, one row per run."""
     path = out_dir / "harmonic_polarization.csv"
@@ -411,6 +476,7 @@ def make_figures(data_dir, out_dir) -> list[Path]:
         _selection_rule(runs, "bcp_I=1.5e12", out_dir),
         _polarization(runs, "bcp_I=1.5e12", out_dir),
         _spectrogram_figure(runs, 1.5e12, out_dir),
+        _probe_response_figure(data_dir, out_dir),
         write_yield_table(runs, out_dir),
         write_polarization_table(runs, out_dir),
     ]

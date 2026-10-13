@@ -57,6 +57,16 @@ Two stages show up for every pump type. While the pump is on (the first 8 or so 
 
 ![Time-resolved harmonic emission](figures/spectrogram_I=1.5e12.png)
 
+**Probe response in the pump-probe run**
+
+The pump-probe file repeats the bicircular pump with a weak probe added. The probe is a step in the vector potential, $A(t) = 8\times10^{-4}$ a.u. for $t \ge 0$, which acts on the electrons as a very short kick. Up to the kick the two runs are identical, so subtracting the pump-only current isolates the probe's response.
+
+The response starts at 393.04 a.u. (9.51 fs) on the file's time axis, which is the kick. The first sample after it sits within the 0.08 a.u. time step, so the onset is known to that precision. The pump peak comes 4.5 fs later, at 14.05 fs. The largest change is 0.29 % of the pump peak. A linear estimate, the probe's vector potential over the pump's (about 0.21 a.u. for linear polarization at this intensity), gives about 0.37 %, so the measured response is the size a linear kick of this strength should produce.
+
+The response is broadband. In the spectrum it sits about 10⁻⁴ of the pump at orders 5 to 8 and falls below 10⁻² of the pump at every order from 1 to 5. Its time profile keeps oscillating after the pump has gone, growing again near 47 fs and still present at the end of the run at about 60 fs. I have not yet found the cause of that late signal.
+
+![Probe response](figures/probe_response.png)
+
 ## Installation
 
 Requires Python 3.10 or newer.
