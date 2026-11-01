@@ -16,7 +16,7 @@ fonttools==4.65.0 ; python_full_version < '3.11'
     # via matplotlib
 fonttools==4.66.1 ; python_full_version >= '3.11'
     # via matplotlib
-iniconfig==2.3.0
+iniconfig==2.3.1
     # via pytest
 kiwisolver==1.5.1
     # via matplotlib
