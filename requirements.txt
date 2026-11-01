@@ -55,7 +55,7 @@ pytest==9.1.1
     # via hhg (pyproject.toml)
 python-dateutil==2.9.0.post0
     # via matplotlib
-ruff==0.16.9
+ruff==0.17.3
     # via hhg (pyproject.toml)
 six==1.17.0
     # via python-dateutil
